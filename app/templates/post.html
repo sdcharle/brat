@@ -13,7 +13,7 @@
 {% if post.author.id == g.user.id %}
 <div><a href="{{ url_for('delete', id = post.id) }}">{{ _('Delete') }}</a></div>
 {% endif %}
-<img id="loading{{post.id}}" style="display: none" src="/brat/static/img/loading.gif">
+<img id="loading{{post.id}}" style="display: none" src="/static/img/loading.gif">
         </td>
         
         

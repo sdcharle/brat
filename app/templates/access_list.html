@@ -1,0 +1,31 @@
+<!-- extend base layout -->
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Hi, {{g.user.nickname}}!</h1>
+<table class="table table-hover">
+<tr>
+<td>RFID Tag</td>
+<td>User</td>
+<td>Date</td>
+<td>Access Granted</td>
+
+</tr>    
+{% for access_event in access_events.items %}
+    {% include 'access_list_item.html' %}
+{% endfor %}
+</table>
+
+<ul class="pager">
+    {% if access_events.has_prev %}
+    <li class="previous"><a href="{{ url_for('access_list', page = access_events.prev_num) }}">Previous Users</a></li>
+    {% else %}
+    <li class="previous disabled"><a href="#">Previous Accesses</a></li>
+    {% endif %}
+    {% if access_events.has_next %}
+    <li class="next"><a href="{{ url_for('access_list', page = access_events.next_num) }}">Next users</a></li>
+    {% else %}
+    <li class="next disabled"><a href="#">Next Accesses</a></li>
+    {% endif %}
+</ul>
+{% endblock %}

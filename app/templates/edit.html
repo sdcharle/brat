@@ -2,13 +2,13 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Edit Your Profile</h1>
+<h1>Edit User</h1>
 {% include 'flash.html' %}
 <div class="well">
     <form class="form-horizontal" action="" method="post" name="edit">
         {{form.hidden_tag()}}
         <div class="control-group{% if form.errors.post %} error{% endif %}">
-            <label class="control-label" for="nickname">Your nickname:</label>
+            <label class="control-label" for="nickname">Nickname:</label>
             <div class="controls">
                 {{ form.nickname(maxlength = 64, class = "span4") }}
                 {% for error in form.errors.nickname %}
@@ -16,11 +16,63 @@
                 {% endfor %}
             </div>
         </div>
+ 
+          <div class="control-group{% if form.errors.post %} error{% endif %}">
+            <label class="control-label" for="first_name">First name:</label>
+            <div class="controls">
+                {{ form.first_name(maxlength = 64, class = "span4") }}
+                {% for error in form.errors.first_name %}
+                    <span class="help-inline">[{{error}}]</span><br>
+                {% endfor %}
+            </div>
+        </div>
+          
+          
+         <div class="control-group{% if form.errors.post %} error{% endif %}">
+            <label class="control-label" for="last_name">Last name:</label>
+            <div class="controls">
+                {{ form.last_name(maxlength = 64, class = "span4") }}
+                {% for error in form.errors.last_name %}
+                    <span class="help-inline">[{{error}}]</span><br>
+                {% endfor %}
+            </div>
+        </div>   
+        
+        
         <div class="control-group{% if form.errors.post %} error{% endif %}">
-            <label class="control-label" for="about_me">About yourself:</label>
+            <label class="control-label" for="about_me">Brief Bio:</label>
             <div class="controls">
                 {{ form.about_me(cols = 64, rows = 4, class = "span4") }}
                 {% for error in form.errors.about_me %}
+                    <span class="help-inline">[{{error}}]</span><br>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="control-group{% if form.errors.post %} error{% endif %}">
+            <label class="control-label" for="is_active">Is active? (don't delete users, mark them as inactive)</label>
+            <div class="controls">
+                {{ form.is_active() }}
+                {% for error in form.errors.is_active %}
+                    <span class="help-inline">[{{error}}]</span><br>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="control-group{% if form.errors.post %} error{% endif %}">
+            <label class="control-label" for="rfid_access">RFID Access?</label>
+            <div class="controls">
+                {{ form.rfid_access() }}
+                {% for error in form.errors.rfid_access %}
+                    <span class="help-inline">[{{error}}]</span><br>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="control-group{% if form.errors.post %} error{% endif %}">
+            <label class="control-label" for="rfid_tag">RFID Tag:</label>
+            <div class="controls">
+                {{ form.rfid_tag(cols = 20, rows = 1, class = "span4") }}
+                {% for error in form.errors.rfid_tag %}
                     <span class="help-inline">[{{error}}]</span><br>
                 {% endfor %}
             </div>

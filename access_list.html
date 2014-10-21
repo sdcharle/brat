@@ -1,0 +1,38 @@
+<!-- extend base layout -->
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Hi, {{g.user.nickname}}!</h1>
+
+<button type="button" class="btn btn-default btn-lg"><a href="/edit">New User</a></button>
+
+<p/>
+
+<table class="table table-hover">
+<tr>
+<td>Nickname</td>
+<td>Email</td>
+<td>First Name</td>
+<td>Last Name</td>
+<td>RFID Access</td>
+<td>RFID Tag</td>
+<td>Is active?</td>
+</tr>    
+{% for user in users %}
+    {% include 'user_list_item.html' %}
+{% endfor %}
+</table>
+
+<ul class="pager">
+    {% if users.has_prev %}
+    <li class="previous"><a href="{{ url_for('index', page = user_list.prev_num) }}">Previous Users</a></li>
+    {% else %}
+    <li class="previous disabled"><a href="#">Previous users</a></li>
+    {% endif %}
+    {% if users.has_next %}
+    <li class="next"><a href="{{ url_for('index', page = user_list.next_num) }}">Next users</a></li>
+    {% else %}
+    <li class="next disabled"><a href="#">Next Users</a></li>
+    {% endif %}
+</ul>
+{% endblock %}

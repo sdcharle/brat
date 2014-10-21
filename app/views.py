@@ -1,12 +1,11 @@
 from flask import render_template, flash, redirect, session, url_for, request, g
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from app import app, db, lm, oid
-from forms import LoginForm, EditForm, PostForm, SearchForm
-from models import User, ROLE_USER, ROLE_ADMIN, Post
+from forms import LoginForm, EditForm, PostForm
+from models import User, ROLE_USER, ROLE_ADMIN, Post, AccessEvent
 from datetime import datetime
 from config import POSTS_PER_PAGE
-
-from config import MAX_SEARCH_RESULTS
+from config import USERS_PER_PAGE
 
 from app import babel
 from config import LANGUAGES
@@ -23,30 +22,19 @@ from config import DATABASE_QUERY_TIMEOUT
 def get_locale():
     return request.accept_languages.best_match(LANGUAGES.keys())
 
-@app.route('/search_results/<query>')
-@login_required
-def search_results(query):
-    results = Post.query.whoosh_search(query, MAX_SEARCH_RESULTS).all()
-    return render_template('search_results.html',
-        query = query,
-        results = results)
-
 @lm.user_loader
 def load_user(id):
     return User.query.get(int(id))
 
 @app.before_request
 def before_request():
-    print "yo son in request"
     g.user = current_user
-  
     g.locale = 'en'
-# Q: does it do this for every damn request?
+# it does this for every damn request
     if g.user.is_authenticated():
         g.user.last_seen = datetime.utcnow()
         db.session.add(g.user)
         db.session.commit()
-        g.search_form = SearchForm()
 
 @app.route('/', methods = ['GET', 'POST'])
 @app.route('/index', methods = ['GET', 'POST'])
@@ -72,6 +60,32 @@ def index(page = 1):
         title = 'Home',
         form = form,
         posts = posts)  
+
+@app.route('/user_list', methods = ['GET', 'POST'])
+@app.route('/user_list/<int:page>')
+@oid.loginhandler
+def user_list(page = 1):
+  
+    users = User.query.order_by(User.nickname)
+    users = users.paginate(page, USERS_PER_PAGE, False)
+    return render_template('user_list.html',
+                           title = "Users",
+                           users = users
+                           )
+
+
+@app.route('/access_list/', methods = ['GET', 'POST'])
+@app.route('/access_list/<int:page>')
+@oid.loginhandler
+def access_list(page = 1):
+# add, handle 'sailing off edge of world'  
+     access_events = AccessEvent.query.order_by(AccessEvent.event_date.desc())
+     access_events = access_events.paginate(page, POSTS_PER_PAGE, False)
+     print "got some shit"
+     return render_template('access_list.html',
+                           title = "Accesses",
+                           access_events = access_events
+                           )
 
 @app.route('/login', methods = ['GET', 'POST'])
 @oid.loginhandler
@@ -131,20 +145,48 @@ def user(nickname, page = 1):
         user = user,
         posts = posts)
 
+
+# note add option to edit OTHER users but only if admin
 @app.route('/edit', methods = ['GET', 'POST'])
+@app.route('/edit/<nickname>', methods = ['GET', 'POST'])
 @login_required
-def edit():
-    form = EditForm(g.user.nickname)
+def edit(nickname = None): 
+#   wait a min. How about if no nick create new dude?
+    if not nickname:
+        user = User()
+#        nickname = g.nickname
+    else:
+        user = User.query.filter_by(nickname = nickname).first()
+        if user == None:
+            flash('User ' + nickname + ' not found.')
+            return redirect(url_for('index'))    
+    
+    form = EditForm(user.nickname)
     if form.validate_on_submit():
-        g.user.nickname = form.nickname.data
-        g.user.about_me = form.about_me.data
-        db.session.add(g.user)
+        user.nickname = form.nickname.data
+        user.about_me = form.about_me.data
+        user.rfid_access = form.rfid_access.data
+        user.rfid_tag = form.rfid_tag.data
+ 
+        user.first_name = form.first_name.data
+        user.last_name = form.last_name.data
+        user.is_active = form.is_active.data
+        
+        db.session.add(user)
         db.session.commit()
         flash('Your changes have been saved.')
-        return redirect(url_for('edit'))
+        return redirect(url_for('edit', nickname = user.nickname))
     else:
-        form.nickname.data = g.user.nickname
-        form.about_me.data = g.user.about_me
+        form.nickname.data = user.nickname 
+        form.about_me.data = user.about_me 
+        form.rfid_access.data = user.rfid_access 
+        form.rfid_tag.data = user.rfid_tag
+        form.is_active.data = user.is_active
+        
+    
+        form.first_name.data = user.first_name
+        form.last_name.data = user.last_name
+        
     return render_template('edit.html',
         form = form)
 
@@ -196,14 +238,6 @@ def unfollow(nickname):
     flash('You have stopped following ' + nickname + '.')
     return redirect(url_for('user', nickname = nickname))
 
-@app.route('/search', methods = ['POST'])
-@login_required
-def search():
-    if not g.search_form.validate_on_submit():
-        return redirect(url_for('index'))
-    return redirect(url_for('search_results', query = g.search_form.search.data))
-
-
 @app.route('/delete/<int:id>')
 @login_required
 def delete(id):
@@ -229,9 +263,6 @@ def translate():
             request.form['text'], 
             request.form['sourceLang'], 
             request.form['destLang']) })
-
-
-
 
 @app.after_request
 def after_request(response):
