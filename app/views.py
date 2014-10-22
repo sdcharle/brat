@@ -177,15 +177,15 @@ def edit(nickname = None):
         flash('Your changes have been saved.')
         return redirect(url_for('edit', nickname = user.nickname))
     else:
-        form.nickname.data = user.nickname 
-        form.about_me.data = user.about_me 
-        form.rfid_access.data = user.rfid_access 
-        form.rfid_tag.data = user.rfid_tag
-        form.is_active.data = user.is_active
-        
-    
-        form.first_name.data = user.first_name
-        form.last_name.data = user.last_name
+        if nickname:
+            form.nickname.data = user.nickname 
+            form.about_me.data = user.about_me 
+            form.rfid_access.data = user.rfid_access 
+            form.rfid_tag.data = user.rfid_tag
+            form.is_active.data = user.is_active    
+            form.first_name.data = user.first_name
+            form.last_name.data = user.last_name
+            # only if a user we already have.
         
     return render_template('edit.html',
         form = form)
